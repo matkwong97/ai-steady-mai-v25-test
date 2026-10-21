@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,email TEXT UNIQUE NOT NULL,display_name TEXT NOT NULL,salt TEXT NOT NULL,password_hash TEXT NOT NULL,opt_in INTEGER NOT NULL DEFAULT 0,created_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),expires_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS invites(code TEXT PRIMARY KEY,user_id TEXT NOT NULL REFERENCES users(id),expires_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS pairs(id TEXT PRIMARY KEY,a_id TEXT NOT NULL REFERENCES users(id),b_id TEXT NOT NULL REFERENCES users(id),active INTEGER NOT NULL,created_at INTEGER NOT NULL,ended_at INTEGER);
+CREATE TABLE IF NOT EXISTS pages(id TEXT PRIMARY KEY,pair_id TEXT NOT NULL REFERENCES pairs(id),sender_id TEXT NOT NULL REFERENCES users(id),code TEXT NOT NULL,text TEXT NOT NULL,created_at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_pairs_a ON pairs(a_id,active);
+CREATE INDEX IF NOT EXISTS idx_pairs_b ON pairs(b_id,active);
+CREATE INDEX IF NOT EXISTS idx_pages_pair ON pages(pair_id,created_at);
+CREATE TABLE IF NOT EXISTS invite_attempts(user_id TEXT NOT NULL,at INTEGER NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_invite_attempts ON invite_attempts(user_id,at);
