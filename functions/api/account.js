@@ -5,7 +5,7 @@ const hash=async(pass,salt)=>hex(await crypto.subtle.deriveBits({name:'PBKDF2',s
 const token=()=>crypto.randomUUID()+crypto.randomUUID();
 const expire=()=>Date.now()+30*86400000;
 async function user(db,req){const bearer=req.headers.get('authorization')||'';if(!bearer.startsWith('Bearer '))return null;const th=await digest(bearer.slice(7));return db.prepare('SELECT users.id,users.email,users.display_name,users.opt_in FROM sessions JOIN users ON sessions.user_id=users.id WHERE sessions.token_hash=? AND sessions.expires_at>?').bind(th,Date.now()).first()}
-export async function onRequest({request,env}){if(!env.DB)return json({error:'Database not configured'},503);const db=env.DB;let data={};try{if(request.method==='POST')data=await request.json()}catch{return json({error:'Invalid request'},400)}const action=new URL(request.url).searchParams.get('action')||'';try{
+export async function onRequest({request,env}){if(!env.DB)return json({error:'Account database not connected. In Cloudflare Pages → Settings → Bindings, bind your D1 database as DB and redeploy.'},503);const db=env.DB;let data={};try{if(request.method==='POST')data=await request.json()}catch{return json({error:'Invalid request'},400)}const action=new URL(request.url).searchParams.get('action')||'';try{
 if(action==='signup'&&request.method==='POST'){
 const email=String(data.email||'').trim().toLowerCase(),pass=String(data.password||''),display=String(data.name||'').trim().slice(0,60);
 if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||pass.length<12||pass.length>200||!display)return json({error:'Enter a name, valid email and password of at least 12 characters'},400);
@@ -38,4 +38,4 @@ const link=await db.prepare('SELECT id FROM pairs WHERE active=1 AND (a_id=? OR 
 const recent=await db.prepare('SELECT count(*) AS n FROM pages WHERE sender_id=? AND created_at>?').bind(me.id,Date.now()-60000).first();if(recent.n>=5)return json({error:'Too many pages. Try again in a minute'},429);
 await db.prepare('INSERT INTO pages(id,pair_id,sender_id,code,text,created_at) VALUES(?,?,?,?,?,?)').bind(crypto.randomUUID(),link.id,me.id,code,allowed[code],Date.now()).run();return json({ok:true})}
 return json({error:'Not found'},404)
-}catch(e){return json({error:'Request could not be completed. Please try again.'},500)} }
+}catch(e){return json({error:'Database request failed. Confirm schema.sql was executed in D1 and DB binding is active.'},500)} }
