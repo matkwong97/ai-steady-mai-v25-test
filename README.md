@@ -85,3 +85,4 @@ Update **app.js** and **index.html** at the repository root. Do not replace `fun
 
 ## v22 update
 Offline stage-aware chat with a larger curated scenario library; chat expires 24 hours after each message; users can save individual friend replies and react with a thumbs-up (male friend profiles) or heart (female friend profiles). Reactions influence local response variation for recognised topics, not model training. All stored in browser localStorage; clearing browser data removes it. No AI API required. See DEPLOY-v22.md.
+v2 - deployment test 
